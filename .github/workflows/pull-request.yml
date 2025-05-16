@@ -1,0 +1,31 @@
+name: Pull Request Action
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - closed
+
+jobs:
+  create_pr_to_release_if_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Show envs 
+        run: |
+          git fetch 
+          git status 
+      
+      - name: Create PR to release 
+        uses: repo-sync/github-sync@v2
+        with:
+          source_branch: ${{ github.event.pull_request.head.ref }}
+          destination_branch: release
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: ${github.event.pull_request.title}
+          pr_body: ${github.event.pull_request.body}
+          pr_assignee: ${{ github.event.pull_request.merged_by.login }}
+          pr_label: release
