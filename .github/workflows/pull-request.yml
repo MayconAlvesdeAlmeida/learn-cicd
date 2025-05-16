@@ -20,7 +20,7 @@ jobs:
           git status 
       
       - name: Create PR to release 
-        uses: repo-sync/github-sync@v2
+        uses: repo-sync/pull-request@v2
         with:
           source_branch: ${{ github.event.pull_request.head.ref }}
           destination_branch: release
