@@ -1,0 +1,38 @@
+name: Pull Request Action
+
+# Dispara quando um PR para a branch develop for fechado (merge ou manualmente)
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - closed
+
+jobs:
+  create_pr_to_release_if_merged:
+    # Só executa se o PR tiver sido realmente mergeado (evita rodar em PR fechado sem merge)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      # Faz o checkout do código (não é essencial aqui, mas comum em pipelines)
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Comandos opcionais para inspeção do repositório (útil para debug)
+      - name: Show envs 
+        run: |
+          git fetch 
+          git status 
+      
+      # Cria um novo PR da branch que foi mergeada → release
+      - name: Create PR to release 
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: ${{ github.event.pull_request.head.ref }}         # Branch que foi mergeada na develop
+          destination_branch: release                                      # Destino do novo PR
+          github_token: ${{ secrets.GITHUB_TOKEN }}                        # Token com permissões de escrita
+          pr_title: ${{ github.event.pull_request.title }}                 # Título do novo PR = título do PR original
+          pr_body: ${{ github.event.pull_request.body }}                   # Corpo do novo PR = corpo do PR original
+          pr_assignee: ${{ github.event.pull_request.merged_by.login }}    # Responsável = quem fez o merge
+          pr_label: release                                                # Label no novo PR
